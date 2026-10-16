@@ -12,13 +12,9 @@ export default function handler(req, res) {
     return;
   }
 
-  // URL se roll, reg aur key nikalna
   const { roll, reg, key } = req.query;
-  
-  // Tumhari Master API Key
   const MASTER_KEY = "Jamal";
 
-  // API Key Check karna
   if (!key || key !== MASTER_KEY) {
     return res.status(401).json({
       status: "Access Denied",
@@ -31,7 +27,7 @@ export default function handler(req, res) {
   if (!roll && !reg) {
     return res.status(400).json({
       status: "Error",
-      message: "Bhai, URL me Roll No. ya Registration No. jarur dalo! (Example: ?roll=123)",
+      message: "Bhai, URL me Roll No. ya Registration No. jarur dalo! (Example: &roll=123)",
       developer: "Hacker Jamal",
       group: "The logical thinks"
     });
@@ -55,8 +51,9 @@ export default function handler(req, res) {
       });
 
       for (const row of parsedData.data) {
-        const rowRoll = (row['Roll No'] || row['roll'] || row['Roll'] || row['Roll Number'] || '').toString().trim().toLowerCase();
-        const rowReg = (row['Registration No'] || row['reg'] || row['Registration'] || row['Reg No'] || '').toString().trim().toLowerCase();
+        // Yahan maine "College Roll Number" aur "Registration Number" add kar diya hai
+        const rowRoll = (row['College Roll Number'] || row['Roll No'] || row['roll'] || row['Roll'] || row['Roll Number'] || '').toString().trim().toLowerCase();
+        const rowReg = (row['Registration Number'] || row['Registration No'] || row['reg'] || row['Registration'] || row['Reg No'] || '').toString().trim().toLowerCase();
 
         if (rowRoll === searchValue || rowReg === searchValue) {
           foundStudent = row;
