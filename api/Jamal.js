@@ -3,7 +3,6 @@ const path = require('path');
 const Papa = require('papaparse');
 
 export default function handler(req, res) {
-  // CORS setup - Taaki tumhara HTML panel is API ko call kar sake bina error ke
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -13,8 +12,21 @@ export default function handler(req, res) {
     return;
   }
 
-  // API url se roll ya reg (registration) number nikalna
-  const { roll, reg } = req.query;
+  // URL se roll, reg aur key nikalna
+  const { roll, reg, key } = req.query;
+  
+  // Tumhari Master API Key
+  const MASTER_KEY = "Jamal";
+
+  // API Key Check karna
+  if (!key || key !== MASTER_KEY) {
+    return res.status(401).json({
+      status: "Access Denied",
+      message: "Bhai, API key missing ya invalid hai! Hacker Jamal se valid key lijiye.",
+      developer: "Hacker Jamal",
+      group: "The logical thinks"
+    });
+  }
 
   if (!roll && !reg) {
     return res.status(400).json({
@@ -28,11 +40,8 @@ export default function handler(req, res) {
   const searchValue = (roll || reg).toString().trim().toLowerCase();
   
   try {
-    // Vercel me 'data' folder ko dhoondhna
     const dataDirectory = path.join(process.cwd(), 'data');
     const files = fs.readdirSync(dataDirectory);
-    
-    // Sirf CSV files ko select karna
     const csvFiles = files.filter(file => file.endsWith('.csv'));
     let foundStudent = null;
 
@@ -40,29 +49,24 @@ export default function handler(req, res) {
       const filePath = path.join(dataDirectory, file);
       const fileContent = fs.readFileSync(filePath, 'utf8');
       
-      // CSV File ko JSON me badalna
       const parsedData = Papa.parse(fileContent, {
         header: true, 
         skipEmptyLines: true
       });
 
-      // Har row me student ko dhundhna
       for (const row of parsedData.data) {
-        // Tumhari CSV me inme se koi bhi column name ho sakta hai
         const rowRoll = (row['Roll No'] || row['roll'] || row['Roll'] || row['Roll Number'] || '').toString().trim().toLowerCase();
         const rowReg = (row['Registration No'] || row['reg'] || row['Registration'] || row['Reg No'] || '').toString().trim().toLowerCase();
 
         if (rowRoll === searchValue || rowReg === searchValue) {
           foundStudent = row;
-          break; // Student mil gaya, loop roko
+          break; 
         }
       }
-
-      if (foundStudent) break; // Student mil gaya, agli file check mat karo
+      if (foundStudent) break; 
     }
 
     if (foundStudent) {
-      // Agar Data Mil Gaya
       return res.status(200).json({
         status: "Success",
         data: foundStudent,
@@ -70,7 +74,6 @@ export default function handler(req, res) {
         group: "The logical thinks"
       });
     } else {
-      // Agar Data Nahi Mila
       return res.status(404).json({
         status: "Not Found",
         message: "Data nahi mila yaar, kisi bhi CSV file me ye Roll/Reg No. nahi hai.",
@@ -80,7 +83,6 @@ export default function handler(req, res) {
     }
 
   } catch (error) {
-    // Agar server me koi error aaye
     return res.status(500).json({
       status: "Error",
       message: "Server me problem aa gayi hai.",
