@@ -1,0 +1,9 @@
+{
+  "name": "jamal-data-hub",
+  "version": "1.0.0",
+  "description": "Student Data API by Hacker Jamal",
+  "main": "api/jamal.js",
+  "dependencies": {
+    "papaparse": "^5.4.1"
+  }
+}
