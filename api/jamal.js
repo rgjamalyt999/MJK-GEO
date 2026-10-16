@@ -27,13 +27,19 @@ export default function handler(req, res) {
   if (!roll && !reg) {
     return res.status(400).json({
       status: "Error",
-      message: "Bhai, URL me Roll No. ya Registration No. jarur dalo! (Example: &roll=123)",
+      message: "Bhai, URL me Roll No. ya Registration No. dono me se koi ek jarur dalo! (Example: &roll=123 ya &reg=456)",
       developer: "Hacker Jamal",
       group: "The logical thinks"
     });
   }
 
-  const searchValue = (roll || reg).toString().trim().toLowerCase();
+  // Data ko clean karne ka function taaki .0 ya extra space se error na aaye
+  const cleanText = (text) => {
+    if (!text) return "";
+    return text.toString().replace(/\.0$/, '').trim().toLowerCase();
+  };
+
+  const searchValue = cleanText(roll || reg);
   
   try {
     const dataDirectory = path.join(process.cwd(), 'data');
@@ -51,9 +57,9 @@ export default function handler(req, res) {
       });
 
       for (const row of parsedData.data) {
-        // Yahan maine "College Roll Number" aur "Registration Number" add kar diya hai
-        const rowRoll = (row['College Roll Number'] || row['Roll No'] || row['roll'] || row['Roll'] || row['Roll Number'] || '').toString().trim().toLowerCase();
-        const rowReg = (row['Registration Number'] || row['Registration No'] || row['reg'] || row['Registration'] || row['Reg No'] || '').toString().trim().toLowerCase();
+        // Roll No. aur Registration No. ke saare possible columns check karna
+        const rowRoll = cleanText(row['College Roll Number'] || row['Roll No'] || row['roll'] || row['Roll'] || row['Roll Number']);
+        const rowReg = cleanText(row['Registration Number'] || row['Registration No'] || row['reg'] || row['Registration'] || row['Reg No']);
 
         if (rowRoll === searchValue || rowReg === searchValue) {
           foundStudent = row;
@@ -73,7 +79,7 @@ export default function handler(req, res) {
     } else {
       return res.status(404).json({
         status: "Not Found",
-        message: "Data nahi mila yaar, kisi bhi CSV file me ye Roll/Reg No. nahi hai.",
+        message: "Data nahi mila yaar, kisi bhi CSV file me ye Roll/Reg No. match nahi hua.",
         developer: "Hacker Jamal",
         group: "The logical thinks"
       });
